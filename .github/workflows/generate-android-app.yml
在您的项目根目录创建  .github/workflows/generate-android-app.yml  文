@@ -1,0 +1,38 @@
+name: Generate Android IPTV App
+
+on:
+  workflow_dispatch:  # 允许手动触发
+  push:
+    branches: [ main ]
+    paths:
+      - 'generate-script.sh'  # 当脚本更改时触发
+
+jobs:
+  generate-android-app:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Make script executable
+      run: chmod +x generate-script.sh
+      
+    - name: Run generation script
+      run: ./generate-script.sh
+      
+    - name: List generated files
+      run: |
+        echo "生成的文件结构:"
+        find IPTV-Android -type f -name "*.gradle" -o -name "*.xml" -o -name "*.java" -o -name "*.html" | head -20
+        echo "..."
+        
+    - name: Commit generated project
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add IPTV-Android/
+        git commit -m "自动生成 Android IPTV 应用项目" || echo "没有更改可提交"
+        git push origin main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
